@@ -5,7 +5,7 @@
 #include <stdio.h>
 using namespace std;
 using namespace cv;
-Mat src,di33,di55,e33,e55,op5,op3,cs3,cs5;
+Mat src,di33,di55,er33,er55,op5,op3,cs3,cs5;
 
 //
 
@@ -33,8 +33,8 @@ int main(int argc, char** argv)
 	src = imread(ins+".jpg", 1 );
 	cvtColor( src, di33, CV_RGB2GRAY );
 	cvtColor( src, di55, CV_RGB2GRAY );
-	cvtColor( src, e33, CV_RGB2GRAY );
-	cvtColor( src, e55, CV_RGB2GRAY );
+	cvtColor( src, er33, CV_RGB2GRAY );
+	cvtColor( src, er55, CV_RGB2GRAY );
 	cvtColor( src, op5, CV_RGB2GRAY );
 	cvtColor( src, cs5, CV_RGB2GRAY );
 	cvtColor( src, op3, CV_RGB2GRAY );
@@ -51,9 +51,9 @@ int main(int argc, char** argv)
 	for(int i=0;i<col;i++){
 		for(int j=0;j<row;j++){
 				di33.at<uchar>(Point(i,j))= mask33_Dilation(i,j);
-				e33.at<uchar>(Point(i,j))= mask33_Erosion(i,j);
+				er33.at<uchar>(Point(i,j))= mask33_Erosion(i,j);
 				di55.at<uchar>(Point(i,j))= mask55_Dilation(i,j);
-				e55.at<uchar>(Point(i,j))= mask55_Erosion(i,j);
+				er55.at<uchar>(Point(i,j))= mask55_Erosion(i,j);
 					//cout<<"ROW:"<<mask55_Dilation(i,j)<<endl;
 		}
 		//cout<<"ROW:"<<mask55_Dilation(i,100)<<endl;
@@ -61,11 +61,11 @@ int main(int argc, char** argv)
 	//opening&closing
 	for(int i=0;i<col;i++){
 		for(int j=0;j<row;j++){
-				op5.at<uchar>(Point(i,j))= mask55_Dilation_op(i,j);
 				op3.at<uchar>(Point(i,j))= mask33_Dilation_op(i,j);
-				cs5.at<uchar>(Point(i,j))= mask55_Erosion_cs(i,j);
+				op5.at<uchar>(Point(i,j))= mask55_Dilation_op(i,j);
 				cs3.at<uchar>(Point(i,j))= mask33_Erosion_cs(i,j);
-					//cout<<"ROW:"<<mask55_Dilation(i,j)<<endl;
+				cs5.at<uchar>(Point(i,j))= mask55_Erosion_cs(i,j);
+				
 		}
 		//cout<<"ROW:"<<mask55_Dilation(i,100)<<endl;
 	}
@@ -81,12 +81,12 @@ int main(int argc, char** argv)
 	imwrite( ins+"_d55.jpg", di55);
 
 	namedWindow( "e33", CV_WINDOW_AUTOSIZE );
-	imshow( "e33", e33 );
-	imwrite( ins+"_e33.jpg", e33);
+	imshow( "e33", er33 );
+	imwrite( ins+"_e33.jpg", er33);
 
 	namedWindow( "e55", CV_WINDOW_AUTOSIZE );
-	imshow( "e55", e55 );
-	imwrite( ins+"_e55.jpg", e55);
+	imshow( "e55", er55 );
+	imwrite( ins+"_e55.jpg", er55);
 
 	namedWindow( "op3", CV_WINDOW_AUTOSIZE );
 	imshow( "op3", op3);
@@ -119,8 +119,10 @@ int mask33_Erosion(int x,int y){
 				checks(x,y+1),
 				checks(x+1,y+1)
 	};
+
 	sort(arr,arr+9);
-	return arr[0];
+	int rt=arr[0];
+	return rt;
 }
 int mask33_Dilation(int x,int y){
 	int arr[9]={checks(x-1,y-1),
@@ -134,25 +136,14 @@ int mask33_Dilation(int x,int y){
 				checks(x+1,y+1)
 	};
 	sort(arr,arr+9);
-	return arr[8];
+	int rt=arr[8];
+	return rt;
 }
 
 int mask55_Dilation(int x,int y){
-	int arr2[25]={0};
-	int c=0;
-	for(int i=x-2;i<x+2;i++){
-		for(int j=y-2;j<y+2;j++){
-			arr2[c]=checks(i,j);
-			c++;
-		}
-	}
-	sort(arr2,arr2+25);
-	/*if(x==100)
-		cout<<"ROW:"<<arr2[24]<<endl;*/
-	return arr2[24];
-}
-int mask55_Erosion(int x,int y){
-	int arr[25];
+	//int arr2[25]= {0};
+	int *arr=new int[25];
+	
 	int c=0;
 	for(int i=x-2;i<x+2;i++){
 		for(int j=y-2;j<y+2;j++){
@@ -161,7 +152,24 @@ int mask55_Erosion(int x,int y){
 		}
 	}
 	sort(arr,arr+25);
-	return arr[0];
+	if(x==100)
+		cout<<"ROW:"<<arr[24]<<endl;
+	int rt=arr[24];
+	return rt;
+	//delete []arr;
+}
+int mask55_Erosion(int x,int y){
+	int *arr=new int[25];
+	int c=0;
+	for(int i=x-2;i<x+2;i++){
+		for(int j=y-2;j<y+2;j++){
+			arr[c]=checks(i,j);
+			c++;
+		}
+	}
+	sort(arr,arr+25);
+	int rt=arr[0];
+	return rt;
 }
 
 int mask33_Dilation_op(int x,int y){
@@ -176,39 +184,42 @@ int mask33_Dilation_op(int x,int y){
 				check_op3(x+1,y+1)
 	};
 	sort(arr,arr+9);
-	return arr[8];
+	int rt=arr[8];
+	return rt;
 }
 int mask55_Dilation_op(int x,int y){
-	int arr2[25]={0};
+	int *arr=new int[25];
 	int c=0;
 	for(int i=x-2;i<x+2;i++){
 		for(int j=y-2;j<y+2;j++){
-			arr2[c]=check_op5(i,j);
+			arr[c]=check_op5(i,j);
 			c++;
 		}
 	}
-	sort(arr2,arr2+25);
+	sort(arr,arr+25);
 	/*if(x==100)
 		cout<<"ROW:"<<arr2[24]<<endl;*/
-	return arr2[24];
+	int rt=arr[24];
+	return rt;
 }
 
 int mask33_Erosion_cs(int x,int y){
-	int arr2[25]={0};
+	int *arr=new int[9];
 	int c=0;
-	for(int i=x-2;i<x+2;i++){
-		for(int j=y-2;j<y+2;j++){
-			arr2[c]=check_cs3(i,j);
+	for(int i=x-1;i<x+1;i++){
+		for(int j=y-1;j<y+1;j++){
+			arr[c]=check_cs3(i,j);
 			c++;
 		}
 	}
-	sort(arr2,arr2+25);
+	sort(arr,arr+9);
 	/*if(x==100)
 		cout<<"ROW:"<<arr2[24]<<endl;*/
-	return arr2[0];
+	int rt=arr[0];
+	return rt;
 }
 int mask55_Erosion_cs(int x,int y){
-	int arr[25];
+	int *arr=new int[25];
 	int c=0;
 	for(int i=x-2;i<x+2;i++){
 		for(int j=y-2;j<y+2;j++){
@@ -216,10 +227,12 @@ int mask55_Erosion_cs(int x,int y){
 			c++;
 		}
 	}
-	if(x==100)
-		cout<<"ROW:"<<arr[0]<<endl;
+	
 	sort(arr,arr+25);
-	return arr[0];
+	//if(x==100)
+	//	cout<<"ROW:"<<arr4[0]<<endl;
+	int rt=arr[24];
+	return rt;
 }
 
 //檢查是否出界
@@ -234,7 +247,7 @@ int checks(int x,int y){
 
 int check_op5(int x,int y){
 	if(x>=0&&x<src.cols&&y>=0&&y<src.rows){
-		int c=e55.at<uchar>(Point(x,y));
+		int c=er55.at<uchar>(Point(x,y));
 		return 	c;
 	}
 	else
@@ -242,7 +255,7 @@ int check_op5(int x,int y){
 }
 int check_op3(int x,int y){
 	if(x>=0&&x<src.cols&&y>=0&&y<src.rows){
-		int c=e33.at<uchar>(Point(x,y));
+		int c=er33.at<uchar>(Point(x,y));
 		return 	c;
 	}
 	else
